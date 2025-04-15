@@ -1,0 +1,39 @@
+Hesaplamalar Bölümünü İşlevsel Hale Getirme: Bu en kapsamlı adım olacaktır.
+
+Malzemeler: Malzeme kütüphanesi sayfasını tamamlamak (Beton ve Donatı sınıflarını seçince özelliklerin gelmesi, özel malzeme tanımı, kaydetme/yükleme).
+Kesitler: Kesit kütüphanesi sayfasını tamamlamak (Dikdörtgen, Dairesel vb. kesit tanımlama, boyut girme, kesit özelliklerini hesaplama, kaydetme/yükleme).
+Tekil Eleman Tasarımı: Bu sayfayı tamamlamak (tanımlı kesit ve malzemelerle, girilen iç kuvvetlere göre eğilme/kesme donatısı hesabı, kontrolleri yapma ve sonuçları gösterme).
+Deprem Yükü Hesabı: TBDY 2018'e göre eşdeğer yük hesabını yapan formülleri ve arayüzü tamamlamak.
+Raporlama: Hesaplama sonuçlarını ve proje bilgilerini içeren PDF veya başka formatlarda rapor oluşturma işlevini eklemek.
+AutoCAD Entegrasyonunu Geliştirme:
+
+AutoCAD alt menüsündeki "Çizim Temizle", "Layer Yönetimi", "Blok İşlemleri" gibi butonlara gerçek işlevler eklemek.
+Hesaplama sonuçlarına göre AutoCAD'de çizim yapma (örn. donatı detayı çizimi) gibi yeni özellikler eklemek.
+AutoCAD'den veri okuma (örn. çizimden obje seçme, özelliklerini alma) fonksiyonları eklemek.
+Profil Yönetimini Geliştirme:
+
+Profillere sadece proje bilgilerini değil, tanımlanan malzemeleri ve kesitleri de kaydetme/yükleme.
+Mevcut durumu farklı bir isimle yeni bir profil olarak kaydetme seçeneği.
+Genel İyileştirmeler:
+
+Dosya Menüsü: "Yeni Proje", "Proje Aç", "Kaydet", "Farklı Kaydet" gibi komutları işlevsel hale getirmek (bu, proje verilerinin nasıl saklanacağına dair bir yapı gerektirir).
+Diğer menü komutlarını (Yönetmelik seçimi, Birim sistemi vb.) aktif hale getirmek.
+Daha detaylı hata yönetimi ve kullanıcı bilgilendirme mesajları eklemek.
+Alt kısma bir "Durum Çubuğu" ekleyerek anlık bilgileri (örn. "Kaydedildi", "Hesaplanıyor...") göstermek.
+Butonlara ve kontrollere fare üzerine gelince açıklama gösteren ipuçları (tooltips) eklemek.
+Kullanım Kılavuzu veya Yardım bölümü içeriği oluşturmak.
+Uzun süren işlemler (karmaşık hesaplamalar, AutoCAD etkileşimleri) için arayüzün donmasını engelleyecek threading (iş parçacığı) yapısını kullanmak.
+
+
+    Malzeme ve Kesit Kütüphaneleri: Kullanıcının malzeme (beton, donatı) ve kesit (dikdörtgen, dairesel vb.) tanımlaması, özelliklerinin (fck, fyk, boyutlar, alan, atalet momenti vb.) otomatik veya manuel olarak belirlenmesi, bunların kaydedilmesi ve yüklenmesi gerekir.
+    Tekil Eleman Tasarımı: Seçilen malzeme, kesit ve girilen iç kuvvetlere göre (Md, Vd, Nd) ilgili yönetmeliğe (örn. TS 500) uygun donatı hesaplarının (eğilme, kesme) yapılması ve kontrollerin gerçekleştirilmesi gerekir.
+    Deprem Yükü Hesabı: TBDY 2018'e göre Eşdeğer Taban Kesme Kuvveti yönteminin tüm adımlarının (parametrelerin belirlenmesi, formüllerin uygulanması, kontrollerin yapılması) kodlanması gerekir.
+    Raporlama: Tüm bu girdi ve çıktıların düzenli bir formatta (PDF, Excel vb.) raporlanması için ayrı bir altyapı kurulması gerekir (bu genellikle reportlab veya openpyxl gibi ek kütüphaneler gerektirir).
+    Bu işlevlerin hepsini tek seferde koda eklemek maalesef mümkün değil, çünkü her biri kendi içinde oldukça fazla detay ve kodlama gerektiriyor.
+
+    Önerim: Bu bölümleri adım adım ilerleyerek ekleyelim. Örneğin:
+
+    Önce Malzeme Kütüphanesi sayfasını tamamlayabiliriz: Beton ve donatı ekleme/düzenleme/silme arayüzünü ve temel özelliklerin (seçilen sınıfa göre fck, fyk vb.) otomatik gelmesini sağlayabiliriz. Bunları profil dosyasına kaydetme/yükleme işlevini ekleyebiliriz.
+    Sonra Kesit Kütüphanesi'ni benzer şekilde yapabiliriz.
+    Ardından, tanımlanan malzeme ve kesitleri kullanarak Tekil Eleman Tasarımı'nın basit bir versiyonunu (örn. sadece dikdörtgen kesit için eğilme hesabı) ekleyebiliriz.
+    Daha sonra Deprem Yükü Hesabı veya diğer bölümlere geçebiliriz.

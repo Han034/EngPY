@@ -1,0 +1,15 @@
+{
+    "Deneme": {
+        "project_info": {
+            "name": "Varsayılan Profil",
+            "desc": "deneme",
+            "engineer": "",
+            "concrete_reg": "TS 500 (2000)",
+            "seismic_reg": "TBDY 2018",
+            "load_reg": "TS 498 (1997)",
+            "units": "Metrik (kN, m, C)"
+        },
+        "materials": [],
+        "sections": []
+    }
+}
