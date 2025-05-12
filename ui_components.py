@@ -9,7 +9,7 @@ import config # Tema renkleri ve sabitler için
 
 def create_content_label(parent, text, current_theme):
     """Belirtilen temaya uygun ana başlık etiketi oluşturur."""
-    font_size = 20 # Makul başlık boyutu
+    font_size = 18 # Dengeli başlık boyutu
     return ttk.Label(parent, text=text, font=("Segoe UI", font_size, "bold"),
                      background=current_theme['content_bg'],
                      foreground=current_theme['title_text'])
@@ -24,6 +24,7 @@ def create_content_text(parent, text, current_theme, size=12): # Varsayılan nor
 def create_content_button(parent, text, current_theme, command=None, style_key='TButton'):
     """Belirtilen temaya ve stile uygun buton oluşturur."""
     # style_key: 'TButton' (ana içerik/sidebar) veya 'Sub.TButton' (alt menü)
+    # Font boyutu ve padding stilden (apply_theme içinde ayarlanır) alınacak
     return ttk.Button(parent, text=text, command=command, style=style_key)
 
 def create_content_entry(parent, current_theme, width=None, textvariable=None):
@@ -41,27 +42,34 @@ def create_content_combobox(parent, values, current_theme, state='readonly', wid
 def create_custom_checkbutton(parent, text, variable, current_theme, command=None, state=tk.NORMAL):
     """Unicode karakterler kullanarak özel bir checkbutton oluşturur."""
     check_frame = tk.Frame(parent, bg=current_theme['content_bg'])
-    check_char_selected = "☑"; check_char_deselected = "☐"; check_font_size = 16 # Kutucuk boyutu
+    check_char_selected = "☑"; check_char_deselected = "☐"
+    check_font_size = 16 # Kutucuk sembol boyutu
+    text_font_size = 13 # Yanındaki metnin fontu
+
     check_label = tk.Label(check_frame, font=("Segoe UI Symbol", check_font_size),
                            bg=current_theme['content_bg'], fg=current_theme['check_indicator'])
-    # Yanındaki metnin fontu
-    text_label = ttk.Label(check_frame, text=text, font=("Segoe UI", 13), # Font: 13
+    text_label = ttk.Label(check_frame, text=text, font=("Segoe UI", text_font_size),
                            background=current_theme['content_bg'], foreground=current_theme['check_fg'])
+
     def update_visual():
+        """Görsel durumu değişkene ve TEMA'ya göre günceller."""
         # Tema değişikliğinde renkleri de güncellemek için:
         check_frame.config(bg=current_theme['content_bg']) # Çerçeve arkaplanı
         check_label.config(bg=current_theme['content_bg'], fg=current_theme['check_indicator'])
         text_label.config(background=current_theme['content_bg'], foreground=current_theme['check_fg'])
 
+        # Karakteri güncelle
         if variable.get() == 1: check_label.config(text=check_char_selected)
         else: check_label.config(text=check_char_deselected)
+
+        # Durumu ayarla (disabled/normal)
         current_state = tk.NORMAL if state == tk.NORMAL else tk.DISABLED
         check_label.config(state=current_state); text_label.config(state=current_state)
 
-
-    check_frame.update_visual_func = update_visual
+    check_frame.update_visual_func = update_visual # Dışarıdan güncelleme için
 
     def toggle():
+        """Değişkeni tersine çevirir, görseli günceller ve komutu çalıştırır."""
         if check_label.cget("state") == tk.DISABLED: return
         variable.set(1 - variable.get()); update_visual()
         if command: command()

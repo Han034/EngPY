@@ -19,22 +19,23 @@ class MainApp:
         """Uygulama ana sınıfını başlatır."""
         self.root = root_window
         # utils modülündeki global root referansını ayarla
-        # (bring_window_to_front gibi fonksiyonların erişimi için)
         utils.root = self.root
 
         # --- Ayarları ve Profilleri Yükle ---
-        utils.load_settings() # utils.app_settings global'ini doldurur
-        utils.load_profiles() # utils.profiles_data global'ini doldurur
-        self.app_settings = utils.app_settings # Referansı al
-        self.profiles_data = utils.profiles_data # Referansı al
-        self.current_profile_name = utils.current_profile_name # Referansı al
+        # utils fonksiyonları global app_settings ve profiles_data'yı doldurur
+        utils.load_settings()
+        utils.load_profiles()
+        # Referansları sınıf özelliklerine alalım
+        self.app_settings = utils.app_settings
+        self.profiles_data = utils.profiles_data
+        self.current_profile_name = utils.current_profile_name
 
         # --- Pencere Ayarları ---
         self.root.title(config.APP_NAME)
         initial_geometry = self.app_settings.get("window_geometry", config.DEFAULT_WINDOW_GEOMETRY)
         try: self.root.geometry(initial_geometry)
         except tk.TclError as e: print(f"Warning: Invalid geometry: {e}"); self.root.geometry(config.DEFAULT_WINDOW_GEOMETRY)
-        self.root.minsize(700, 500)
+        self.root.minsize(700, 500) # Sabit min boyut
         self.root.protocol("WM_DELETE_WINDOW", self.quit_app) # Kapatma işlemi
 
         # --- Stil ve Tema ---
@@ -42,11 +43,17 @@ class MainApp:
         self.style.theme_use('clam')
         self.current_theme_name = self.app_settings.get("theme", "dark")
         self.current_theme = config.themes.get(self.current_theme_name, config.themes["dark"])
+        # Global tema değişkenlerini de ayarlayalım (ui_components erişimi için - geçici)
+        # TODO: ui_components fonksiyonlarına tema argümanı göndermek daha iyi
+        global current_theme, current_theme_name
+        current_theme = self.current_theme
+        current_theme_name = self.current_theme_name
+
 
         # --- AutoCAD Durumu ---
         self.autocad_status_message = "Kontrol ediliyor..."
         self.connected_autocad_doc_name = None
-        # Bağlantı kontrolünü başlat (ama sonucu hemen kullanma, PanelFrame kendi alacak)
+        # Bağlantı kontrolünü başlat (ama sonucu hemen kullanma)
         self.refresh_autocad_status_and_view(initial_load=True)
 
         # --- Ana Arayüz Elemanları ---
@@ -65,18 +72,18 @@ class MainApp:
         self._create_sidebar_widgets()
 
         # --- Başlangıç Temasını Uygula ---
-        # Widget referansları artık self içinde olduğu için apply_theme'e göndermeye gerek yok
         self.apply_theme_and_save(self.current_theme_name, initial=True)
 
         # --- Başlangıç Görünümünü Göster ---
         self.show_frame("Panel") # Başlangıçta Panel'i göster
+
 
     def _create_menu(self):
         """Özel üst menü çubuğunu oluşturur."""
         self.custom_menu_bar = tk.Frame(self.root, height=30) # Renk apply_theme'de ayarlanacak
         self.custom_menu_bar.pack(side=tk.TOP, fill=tk.X); self.custom_menu_bar.pack_propagate(False)
         self.menu_buttons = {}; self.dropdown_menus = {}
-        menu_font_size = 11 # Sabit boyut
+        menu_font_size = 11 # Üst menü küçük
 
         # Dosya Menubutton
         mb_file = tk.Menubutton(self.custom_menu_bar, text="Dosya", relief='flat', font=('Segoe UI', menu_font_size), padx=5, pady=2)
@@ -131,15 +138,17 @@ class MainApp:
         self.sidebar_frame = tk.Frame(self.pane, relief='flat', bd=0)
         self.sidebar_frame.pack_propagate(False)
         self.content_frame = tk.Frame(self.pane, relief='flat', bd=0)
-        self.pane.add(self.sidebar_frame, stretch="never", width=250)
+        self.pane.add(self.sidebar_frame, stretch="never", width=250) # Sabit genişlik
         self.pane.add(self.content_frame, stretch="always")
 
     def _create_sidebar_widgets(self):
         """Sol kenar çubuğu widget'larını oluşturur."""
         self.sidebar_frame.grid_columnconfigure(0, weight=1)
-        self.app_title_label = ttk.Label(self.sidebar_frame, text="Ana Menü", font=("Segoe UI", 18, "bold"))
+        # Font boyutu ayarlandı
+        self.app_title_label = ttk.Label(self.sidebar_frame, text="Ana Menü", font=("Segoe UI", 18, "bold")) # Font: 18
         self.app_title_label.grid(row=0, column=0, pady=(15, 20), padx=10, sticky='n')
 
+        # Butonlar TButton stilini kullanacak (Font: 15)
         dashboard_button = ttk.Button(self.sidebar_frame, text="Panel", style='TButton', command=lambda: self.show_frame("Panel"))
         dashboard_button.grid(row=1, column=0, pady=5, padx=10, sticky='ew')
         autocad_button = ttk.Button(self.sidebar_frame, text="AutoCAD", style='TButton', command=lambda: self.show_frame("AutoCAD"))
@@ -155,17 +164,23 @@ class MainApp:
         effective_theme_name = theme_name
         if theme_name == "system": effective_theme_name = utils.get_system_theme()
         if effective_theme_name not in config.themes: effective_theme_name = "dark"
-
         needs_update = (self.current_theme_name != effective_theme_name) or initial
-        # Eğer güncelleme gerekmiyorsa ve bu ilk çalıştırma değilse çık
-        if not needs_update and not initial:
-             print(f"Info: Theme '{effective_theme_name}' is already active.")
-             return
+        if not needs_update: return
 
         self.current_theme_name = effective_theme_name
         self.current_theme = config.themes[self.current_theme_name]
+        # Global değişkenleri de güncelle (ui_components ve section_frames erişimi için)
+        global current_theme, current_theme_name
+        current_theme = self.current_theme
+        current_theme_name = self.current_theme_name
         print(f"Applying theme: {self.current_theme_name}")
         self.app_settings["theme"] = self.current_theme_name
+
+        # --- YENİ STİL EKLE ---
+        self.style.configure('Data.TLabel', font=('Segoe UI', 12), background=self.current_theme['content_bg'], foreground=self.current_theme['text']) # Bold kaldırıldı, daha standart olabilir
+        # VEYA isterseniz bold kalabilir:
+        # self.style.configure('Data.TLabel', font=('Segoe UI', 12, 'bold'), background=self.current_theme['content_bg'], foreground=self.current_theme['text'])
+        # --- BİTTİ: YENİ STİL EKLE ---
 
         # Ana widget'ları güncelle
         self.root.configure(bg=self.current_theme['content_bg'])
@@ -174,34 +189,60 @@ class MainApp:
         self.sidebar_frame.configure(bg=self.current_theme['sidebar_bg'])
         self.content_frame.configure(bg=self.current_theme['content_bg'])
 
-        # --- Stil Ayarları (Dengeli boyutlar) ---
-        self.style.configure('TButton', font=('Segoe UI', 15), padding=(10, 10), foreground=self.current_theme['button_fg'], background=self.current_theme['button_bg'], borderwidth=0, relief='flat')
+        # --- Stil Ayarları (Dengeli/Küçültülmüş boyutlar) ---
+        self.style.configure('TButton', font=('Segoe UI', 13), padding=(8, 6), foreground=self.current_theme['button_fg'], background=self.current_theme['button_bg'], borderwidth=0, relief='flat') # Font: 15
         self.style.map('TButton', foreground=[('active', self.current_theme['button_fg'])], background=[('active', self.current_theme['button_hover_bg'])], relief=[('pressed', 'flat'), ('active', 'flat')])
-        self.style.configure('Sub.TButton', font=('Segoe UI', 12), padding=(5, 5), foreground=self.current_theme['text'], background=self.current_theme['sub_sidebar_bg'], borderwidth=0, relief='flat')
+        self.style.configure('Sub.TButton', font=('Segoe UI', 12), padding=(5, 4), foreground=self.current_theme['text'], background=self.current_theme['sub_sidebar_bg'], borderwidth=0, relief='flat') # Font: 12
         self.style.map('Sub.TButton', foreground=[('active', self.current_theme['button_fg'])], background=[('active', self.current_theme['button_hover_bg'])], relief=[('pressed', 'flat'), ('active', 'flat')])
-        self.style.configure('TEntry', font=('Segoe UI', 13), fieldbackground=self.current_theme['entry_bg'], foreground=self.current_theme['entry_fg'], bordercolor=self.current_theme['entry_border'], insertcolor=self.current_theme['entry_insert'], borderwidth=1, relief='flat')
+        self.style.configure('TEntry', font=('Segoe UI', 13), fieldbackground=self.current_theme['entry_bg'], foreground=self.current_theme['entry_fg'], bordercolor=self.current_theme['entry_border'], insertcolor=self.current_theme['entry_insert'], borderwidth=1, relief='flat') # Font: 13
         self.style.map('TEntry', bordercolor=[('focus', self.current_theme['button_bg'])])
-        self.style.configure('Header.TLabel', font=('Segoe UI', 14, 'bold'), background=self.current_theme['content_bg'], foreground=self.current_theme['title_text'])
+        self.style.configure('Header.TLabel', font=('Segoe UI', 14, 'bold'), background=self.current_theme['content_bg'], foreground=self.current_theme['title_text']) # Font: 14 Bold
         self.style.configure('TSeparator', background=self.current_theme['separator'])
-        self.style.configure('TCombobox', font=('Segoe UI', 13))
+        self.style.configure('TCombobox', font=('Segoe UI', 13)) # Font: 13
+        self.style.configure('TFrame', background=self.current_theme['content_bg']) # Ana Frame'ler için
+        # --- Scrollbar Stili ---
+        # Dikey ve Yatay Scrollbarlar için ortak stil
+        scrollbar_bg = self.current_theme.get('button_bg', '#555') # Kaydırma çubuğu rengi
+        scrollbar_trough = self.current_theme.get('sidebar_bg', '#333') # Kanal rengi
+        scrollbar_active_bg = self.current_theme.get('button_hover_bg', '#666') # Aktif/Hover rengi
+        scrollbar_arrow = self.current_theme.get('text', '#CCC') # Ok rengi (bazı temalarda görünmeyebilir)
 
+        self.style.configure('TScrollbar',
+                            gripcount=0,                # Windows'ta genellikle gereksiz
+                            relief='flat',              # Düz görünüm
+                            borderwidth=0,              # Kenarlık yok
+                            background=scrollbar_bg,    # Kaydırma çubuğu (thumb) rengi
+                            troughcolor=scrollbar_trough,# Kanalın (arkaplan) rengi
+                            arrowcolor=scrollbar_arrow, # Okların rengi
+                            arrowsize=12)               # Ok boyutu (isteğe bağlı)
+
+        # Üzerine gelindiğinde rengi değiştir (map)
+        self.style.map('TScrollbar',
+                    background=[('active', scrollbar_active_bg), ('!active', scrollbar_bg)],
+                    troughcolor=[('!active', scrollbar_trough)]) # Normalde trough değişmez
+        # --- Bitti: Scrollbar Stili ---
         # Statik widget'lar
-        self.app_title_label.configure(background=self.current_theme['sidebar_bg'], foreground=self.current_theme['title_text'], font=("Segoe UI", 18, "bold"))
+        """ self.app_title_label.configure(background=self.current_theme['sidebar_bg'], foreground=self.current_theme['title_text'], font=("Segoe UI", 18, "bold")) # Font: 18 Bold """
+        self.app_title_label.configure(background=self.current_theme['sidebar_bg'], foreground=self.current_theme['title_text'], font=("Segoe UI", 16, "bold")) # Yeni Hali (18 -> 16)
 
-        # Özel Menü Butonları ve Açılır Menüler
+
+        # Özel Menü Butonları ve Açılır Menüler (Küçük kalacak - 11 punto)
         menu_font_size = 11
         for mb in self.menu_buttons.values(): mb.configure(bg=self.current_theme['menu_bar_bg'], fg=self.current_theme['menu_fg'], activebackground=self.current_theme['menu_active_bg'], activeforeground=self.current_theme['menu_active_fg'], font=('Segoe UI', menu_font_size))
         for menu in self.dropdown_menus.values(): menu.configure(bg=self.current_theme['menu_bg'], fg=self.current_theme['menu_fg'], activebackground=self.current_theme['menu_active_bg'], activeforeground=self.current_theme['menu_active_fg'], font=('Segoe UI', menu_font_size))
 
         utils.save_settings() # Genel ayarları kaydet
 
-        # Mevcut görünümü yenile (eğer varsa ve tema değiştiyse)
+        # Mevcut görünümü yenile
         if self.current_frame_widget and needs_update:
              frame_key = getattr(self.current_frame_widget, "_frame_key", None)
              if frame_key: self.show_frame(frame_key) # Frame'i yeniden oluştur
 
     def update_current_view(self, view_func, *args):
         """Aktif görünüm fonksiyonunu saklar (Frame yeniden oluşturulduğu için gereksiz)."""
+        # Bu metodun içeriği artık gerekli değil, çünkü show_frame frame'i yeniden oluşturuyor.
+        # Ancak CalculationsFrame içindeki sayfa geçişleri için bir mekanizma gerekebilir.
+        # Şimdilik bu metodu boş bırakalım veya kaldıralım.
         pass
 
     def show_frame(self, frame_key):
@@ -220,21 +261,13 @@ class MainApp:
         if frame_class:
             # Sınıfı oluştururken ana uygulama örneğini (self) gönder
             new_frame = frame_class(self.content_frame, self)
-            # Frame'e anahtarını ekleyelim ki apply_theme yeniden oluşturabilsin
-            setattr(new_frame, "_frame_key", frame_key)
+            setattr(new_frame, "_frame_key", frame_key) # Yeniden oluşturma için anahtarı sakla
             new_frame.pack(expand=True, fill='both')
             self.current_frame_widget = new_frame
-            # current_view_func'ı ayarla (gerçi frame yeniden oluşturuluyor)
-            if hasattr(new_frame, 'show_page'): # CalculationsFrame için
-                # Varsayılan sayfanın fonksiyonunu sakla (örn: show_page("profiles"))
-                # Bu biraz dolaylı, belki daha iyi bir yöntem bulunur.
-                pass
-            elif hasattr(new_frame, 'show_autocad_home'): # AutoCADFrame için
-                 # self.current_view_func = new_frame.show_autocad_home
-                 pass
-            # Diğer frame'ler için de benzeri yapılabilir veya show_frame'e view_func gönderilebilir.
-            # Şimdilik apply_theme'in frame'i yeniden oluşturmasına güveniyoruz.
-
+            # Aktif görünüm fonksiyonunu ayarla (yeniden oluşturma için)
+            # Bu, sınıfın kendisi veya belirli bir metodu olabilir
+            # Şimdilik frame'in kendisini saklayalım, apply_theme key'i kullanır
+            # self.current_view_func = new_frame # Bu doğrudan callable değil
         else:
             print(f"Error: Unknown frame key '{frame_key}'")
 
@@ -250,10 +283,7 @@ class MainApp:
         """AutoCAD durumunu yeniler ve mevcut görünümü günceller (eğer varsa)."""
         print("Refreshing AutoCAD status...")
         self.autocad_status_message = autocad_interface.check_autocad_connection()
-        self.connected_autocad_doc_name = autocad_interface.connected_autocad_doc_name # Globalden almayı bırakalım
-        # autocad_interface.py içindeki check_autocad_connection'ın
-        # bu bilgileri döndürmesi veya bir sınıf özelliği olarak saklaması daha iyi olur.
-        # Şimdilik global değişkenlere bağımlı kalıyoruz.
+        self.connected_autocad_doc_name = autocad_interface.connected_autocad_doc_name
 
         if not initial_load and self.current_frame_widget:
             frame_key = getattr(self.current_frame_widget, "_frame_key", None)
@@ -270,9 +300,8 @@ class MainApp:
         """Aktif hesaplama profilini kaydeder."""
         if isinstance(self.current_frame_widget, CalculationsFrame):
              if hasattr(self.current_frame_widget, 'save_project_info'):
-                 self.current_frame_widget.save_project_info() # Proje bilgilerini kaydet
-             # TODO: Malzeme ve kesit sayfaları için de kaydetme metotları çağrılabilir
-             # elif hasattr(self.current_frame_widget, 'save_material_info'): self.current_frame_widget.save_material_info()
+                 self.current_frame_widget.save_project_info()
+             # TODO: Malzeme ve kesit kaydetme de eklenebilir
              else: print("Save method not found for current calculation page.")
         else: messagebox.showinfo("Bilgi", "Kaydedilecek aktif bir hesaplama profili sayfası yok.")
 
@@ -283,6 +312,7 @@ class MainApp:
             current_geometry = self.root.winfo_geometry()
             self.app_settings['window_geometry'] = current_geometry
             utils.save_settings()
+            # utils.save_profiles() # İsteğe bağlı olarak profilleri de kapatırken kaydet
         except Exception as e: print(f"Error saving settings on closing: {e}")
         finally: self.root.destroy()
 

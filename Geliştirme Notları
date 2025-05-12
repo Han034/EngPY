@@ -33,7 +33,7 @@ Uzun süren işlemler (karmaşık hesaplamalar, AutoCAD etkileşimleri) için ar
 
     Önerim: Bu bölümleri adım adım ilerleyerek ekleyelim. Örneğin:
 
-    Önce Malzeme Kütüphanesi sayfasını tamamlayabiliriz: Beton ve donatı ekleme/düzenleme/silme arayüzünü ve temel özelliklerin (seçilen sınıfa göre fck, fyk vb.) otomatik gelmesini sağlayabiliriz. Bunları profil dosyasına kaydetme/yükleme işlevini ekleyebiliriz.
-    Sonra Kesit Kütüphanesi'ni benzer şekilde yapabiliriz.
+    
+    
     Ardından, tanımlanan malzeme ve kesitleri kullanarak Tekil Eleman Tasarımı'nın basit bir versiyonunu (örn. sadece dikdörtgen kesit için eğilme hesabı) ekleyebiliriz.
     Daha sonra Deprem Yükü Hesabı veya diğer bölümlere geçebiliriz.

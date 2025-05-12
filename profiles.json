@@ -9,6 +9,49 @@
             "load_reg": "TS 498 (1997)",
             "units": "Metrik (kN, m, C)"
         },
+        "materials": [
+            {
+                "user_name": "dewneme",
+                "type": "Beton",
+                "class": "C25/30",
+                "is_custom": false,
+                "props": {
+                    "fck": 25.0
+                }
+            },
+            {
+                "user_name": "deneme",
+                "type": "Donatı Çeliği",
+                "class": "B500C",
+                "is_custom": false,
+                "props": {
+                    "fyk": 500.0,
+                    "Es": 200000.0
+                }
+            }
+        ],
+        "sections": [
+            {
+                "user_name": "sadasda",
+                "type": "Dikdörtgen",
+                "material_name": "dewneme",
+                "dimensions": {
+                    "b": 10.0,
+                    "h": 20.0
+                }
+            }
+        ]
+    },
+    "x": {
+        "project_info": {
+            "name": "x",
+            "desc": "",
+            "engineer": "",
+            "concrete_reg": "TS 500 (2000)",
+            "seismic_reg": "TBDY 2018",
+            "load_reg": "TS 498 (1997)",
+            "units": "Metrik (kN, m, C)"
+        },
         "materials": [],
         "sections": []
     }
